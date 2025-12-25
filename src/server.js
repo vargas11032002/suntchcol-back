@@ -10,42 +10,32 @@ const energyRoutes = require('./routes/energyRoutes');
 const ticketRoutes = require('./routes/ticketRoutes');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
 
-// Conectar a MongoDB
+// 1. Conectar a MongoDB
 connectDB();
 
-// Middleware simple
-app.use(cors()); // Vercel sobreescribirá esto con los headers del .json
+// 2. Middleware Global
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Rutas
+// 3. REGISTRO DE RUTAS (El orden importa)
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/energy', energyRoutes);
 app.use('/api/tickets', ticketRoutes);
 
-// Ruta de prueba
+// Ruta base para verificar que el servidor responde
 app.get('/', (req, res) => {
-  res.json({ 
-    message: '🌞 Sun Tech Solar API funcionando',
-    version: '1.0.0'
+  res.json({ message: '🌞 Sun Tech Solar API está Online' });
+});
+
+// 4. Manejo de errores (Solo si ninguna ruta de arriba coincide)
+app.use((req, res) => {
+  res.status(404).json({ 
+    message: `Ruta no encontrada: ${req.originalUrl}`,
+    ayuda: "La URL debe empezar con /api/auth, /api/users, etc."
   });
 });
 
-// Manejadores de errores
-app.use((req, res, next) => {
-  res.status(404).json({ message: `No se encontró la ruta - ${req.originalUrl}` });
-});
-
-app.use((err, req, res, next) => {
-  const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
-  res.status(statusCode).json({
-    message: err.message,
-    stack: process.env.NODE_ENV === 'production' ? null : err.stack,
-  });
-});
-
-// Exportación para Vercel
 module.exports = app;
