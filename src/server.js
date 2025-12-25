@@ -15,8 +15,13 @@ const PORT = process.env.PORT || 3000;
 // Conectar a MongoDB
 connectDB();
 
-// Middleware
-app.use(cors());
+// ✅ CONFIGURACIÓN DE CORS (Para evitar los errores rojos en tu consola)
+app.use(cors({
+  origin: '*', // Permite peticiones desde tu localhost:8081
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -40,32 +45,30 @@ app.get('/', (req, res) => {
   });
 });
 
-// --- LOS CAMBIOS ESTÁN AQUÍ ABAJO ---
-
-// Manejo de errores 404 (Rutas no encontradas)
+// Manejo de errores 404
 app.use((req, res, next) => {
   const error = new Error(`No se encontró la ruta - ${req.originalUrl}`);
   res.status(404);
   next(error);
 });
 
-// MANEJADOR DE ERRORES GLOBAL (El que resuelve el error 500)
-// Debe tener los 4 parámetros para que Express lo reconozca
+// Manejador de errores global
 app.use((err, req, res, next) => {
   const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
   console.error(`❌ Error detectado: ${err.message}`);
   
   res.status(statusCode).json({
     message: err.message,
-    // Solo mostramos el stack trace si no estamos en producción
     stack: process.env.NODE_ENV === 'production' ? null : err.stack,
   });
 });
 
+// ✅ AJUSTE PARA VERCEL: Solo usar app.listen si NO estamos en Vercel
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
+  });
+}
 
-// Iniciar servidor
-app.listen(PORT, () => {
-  console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
-  console.log(`📡 API: http://localhost:${PORT}`);
-  console.log(`🌐 Ambiente: ${process.env.NODE_ENV}`);
-});
+// ✅ OBLIGATORIO PARA VERCEL: Exportar la app
+module.exports = app;
