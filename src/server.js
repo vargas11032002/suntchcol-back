@@ -15,11 +15,12 @@ const PORT = process.env.PORT || 3000;
 // Conectar a MongoDB
 connectDB();
 
-// ✅ CONFIGURACIÓN DE CORS (Para evitar los errores rojos en tu consola)
+// ✅ CAMBIO 1: Configuración de CORS para permitir tu Localhost
 app.use(cors({
-  origin: '*', // Permite peticiones desde tu localhost:8081
+  origin: true, // Esto permite que localhost:8081 conecte a Vercel
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
 }));
 
 app.use(express.json());
@@ -56,19 +57,18 @@ app.use((req, res, next) => {
 app.use((err, req, res, next) => {
   const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
   console.error(`❌ Error detectado: ${err.message}`);
-  
   res.status(statusCode).json({
     message: err.message,
     stack: process.env.NODE_ENV === 'production' ? null : err.stack,
   });
 });
 
-// ✅ AJUSTE PARA VERCEL: Solo usar app.listen si NO estamos en Vercel
+// ✅ CAMBIO 2: Condicional para el listen
 if (process.env.NODE_ENV !== 'production') {
   app.listen(PORT, () => {
     console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
   });
 }
 
-// ✅ OBLIGATORIO PARA VERCEL: Exportar la app
+// ✅ CAMBIO 3: EXPORTACIÓN PARA VERCEL (Indispensable)
 module.exports = app;
