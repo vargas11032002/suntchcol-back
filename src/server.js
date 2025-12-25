@@ -15,14 +15,19 @@ const PORT = process.env.PORT || 3000;
 // Conectar a MongoDB
 connectDB();
 
-// ✅ CONFIGURACIÓN DE CORS REFORZADA
+// ✅ 1. CONFIGURACIÓN DE CORS DEFINITIVA
+// Esto resuelve el error "Response to preflight request doesn't pass access control check"
 app.use(cors({
-  origin: true, // Permite cualquier origen (incluyendo tu localhost:8081)
+  origin: true, // Permite cualquier origen (importante para tu localhost:8081)
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+  credentials: true,
+  optionsSuccessStatus: 204
 }));
 
+// ✅ 2. MANEJO DE PETICIONES PRE-FLIGHT (OPTIONS)
+// Es vital para que el navegador "confíe" en el servidor de Vercel
+app.options('*', cors());
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -58,19 +63,19 @@ app.use((req, res, next) => {
 app.use((err, req, res, next) => {
   const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
   console.error(`❌ Error detectado: ${err.message}`);
+  
   res.status(statusCode).json({
     message: err.message,
     stack: process.env.NODE_ENV === 'production' ? null : err.stack,
   });
 });
 
-// ✅ CAMBIO 2: Condicional para el listen
+// ✅ 3. CONDICIONAL PARA SERVIDOR LOCAL
 if (process.env.NODE_ENV !== 'production') {
   app.listen(PORT, () => {
     console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
   });
 }
 
-// ✅ CAMBIO 3: EXPORTACIÓN PARA VERCEL (Indispensable)
+// ✅ 4. EXPORTACIÓN OBLIGATORIA PARA VERCEL
 module.exports = app;
-
