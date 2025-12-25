@@ -15,13 +15,14 @@ const PORT = process.env.PORT || 3000;
 // Conectar a MongoDB
 connectDB();
 
-// ✅ CAMBIO 1: Configuración de CORS para permitir tu Localhost
+// ✅ CONFIGURACIÓN DE CORS REFORZADA
 app.use(cors({
-  origin: true, // Esto permite que localhost:8081 conecte a Vercel
+  origin: true, // Permite cualquier origen (incluyendo tu localhost:8081)
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 }));
+
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -72,3 +73,4 @@ if (process.env.NODE_ENV !== 'production') {
 
 // ✅ CAMBIO 3: EXPORTACIÓN PARA VERCEL (Indispensable)
 module.exports = app;
+
